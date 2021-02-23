@@ -1,9 +1,9 @@
 <template>
-  <main class="home">
-    <article class="container">
+  <main id="Player">
+    <article class="container-fluid">
       <div class="row">
         <div class="col">
-          <h1>Player</h1>
+          <h1>Online Player</h1>
         </div>
       </div>
       <div class="row">
@@ -17,21 +17,27 @@
       </div>
       <div class="row">
         <div class="col text-center">
-          <canvas
-            ref="waveformCanvas"
-            width="800px"
-            height="300px"
+          <div
+            class="canvas-container mx-auto"
+            style="height: 196px"
             @click="seekThere"
-          ></canvas>
+          >
+            <canvas ref="canvasL1" width="1024px" height="196"></canvas>
+            <canvas ref="canvasL2" width="1024px" height="196"></canvas>
+          </div>
         </div>
       </div>
       <div class="row">
         <div class="col text-center">
-          <canvas ref="frequencyCanvas" width="800px" height="200px"></canvas>
+          <div class="canvas-container mx-auto" style="height: 196px">
+            <canvas ref="frequencyCanvas" width="1024px" height="196"></canvas>
+          </div>
         </div>
       </div>
+    </article>
+    <div class="container">
       <div class="row">
-        <div class="col">
+        <div class="col text-center">
           <!-- <audio
             :src="selectedAudioFile.path"
             ref="elAudio"
@@ -41,8 +47,19 @@
             @pause="isPlaying = false"
             style="width: 100%"
           ></audio> -->
-          <button @click="isPlaying = !isPlaying">
-            {{ isPlaying ? "Pause" : "Play" }}
+          <button
+            class="btn btn-primary"
+            @click="
+              () => {
+                if (!isPlaying) {
+                  play();
+                } else {
+                  pause();
+                }
+              }
+            "
+          >
+            {{ isPlaying ? "Pause" : "Play" }} ({{ seek }})
           </button>
         </div>
       </div>
@@ -85,6 +102,18 @@
                 aria-controls="pan"
                 aria-selected="false"
                 >Pan</a
+              >
+            </li>
+            <li class="nav-item" role="presentation">
+              <a
+                class="nav-link"
+                id="biquadFilter-tab"
+                data-toggle="tab"
+                href="#biquadFilter"
+                role="tab"
+                aria-controls="biquadFilter"
+                aria-selected="false"
+                >Biquad Filter</a
               >
             </li>
           </ul>
@@ -269,11 +298,99 @@
                 </div>
               </div>
             </div>
+            <div
+              class="tab-pane fade"
+              id="biquadFilter"
+              role="tabpanel"
+              aria-labelledby="pan-tab"
+            >
+              <div class="form-group row mt-2">
+                <div class="col-3">
+                  <div class="form-group">
+                    <label for="biqadFilterTypeControl">Filter Type</label>
+                  </div>
+                </div>
+                <div class="col-2">
+                  <select v-model="biquadFilterType" class="custom-select">
+                    <option value="lowpass">Low-pass</option>
+                    <option value="highpass">High-pass</option>
+                    <option value="bandpass">Band-pass</option>
+                    <option value="lowshelf">Low-shelf</option>
+                    <option value="highhself">High-shelf</option>
+                    <option value="peaking">Peaking</option>
+                    <option value="notch">Notch</option>
+                    <option value="allpass">All-pass</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col">
+                <div class="form-group form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="isBiquadFilterConnectedControl"
+                    v-model="isBiquadFilterConnected"
+                  />
+                  <label
+                    class="form-check-label"
+                    for="isBiquadFilterConnectedControl"
+                    >Connect</label
+                  >
+                </div>
+                <div class="form-group row">
+                  <div class="col-2">
+                    <label for="biquadFilterFrequencyControl">Frequency:</label>
+                  </div>
+                  <div class="col">
+                    <input
+                      type="number"
+                      v-model="biquadFilterFrequency"
+                      min="0"
+                      max="9000"
+                      step="10"
+                      id="biquadFilterFrequencyControl"
+                      class="form-control"
+                    />
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-2">
+                    <label for="biquadFilterQControl">Q:</label>
+                  </div>
+                  <div class="col">
+                    <input
+                      type="number"
+                      v-model="biquadFilterQ"
+                      min="0"
+                      max="10"
+                      step="0.25"
+                      id="biquadFilterQControl"
+                      class="form-control"
+                    />
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-2">
+                    <label for="biquadFilterGainControl">Gain:</label>
+                  </div>
+                  <div class="col">
+                    <input
+                      type="number"
+                      v-model="biquadFilterGain"
+                      min="0"
+                      max="2"
+                      step="0.1"
+                      id="biquadFilterGainControl"
+                      class="form-control"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <!-- #endregion -->
-    </article>
+    </div>
   </main>
 </template>
 
@@ -281,7 +398,7 @@
 import { getMousePosition } from "../utils";
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 export default {
-  name: "Home",
+  name: "Player",
   components: {},
   data() {
     return {
@@ -313,11 +430,13 @@ export default {
         stereoPanner: null,
         analyserTimeDomainData: null,
         analyserFrequencyData: null,
+        biquadFilter: null,
       },
       gain: 1,
       pan: 0,
       isPlaying: false,
-      isCompressorConnected: true,
+      isCompressorConnected: false,
+      isBiquadFilterConnected: false,
       threshold: -20,
       knee: 40,
       ratio: 3,
@@ -327,7 +446,8 @@ export default {
       graph: {
         source: ["compressor"],
         // noiseGate: ["compressor"],
-        compressor: ["gain"],
+        compressor: ["biquadFilter"],
+        biquadFilter: ["gain"],
         gain: [
           "stereoPanner",
           "analyserTimeDomainData",
@@ -335,6 +455,10 @@ export default {
         ],
         stereoPanner: ["OUT"],
       },
+      biquadFilterType: "lowpass",
+      biquadFilterFrequency: 1000,
+      biquadFilterQ: 1.0,
+      biquadFilterGain: 1.0,
       mouseX: 0,
       mouseY: 0,
       seek: 0,
@@ -347,22 +471,14 @@ export default {
     this.context.close();
   },
   async mounted() {
-    // 1. Create Audio Graph
     this.context = new AudioContext();
-    await this.context.audioWorklet.addModule("/noise-gate.js");
-    // 1.3 Create Nodes
-    // this.nodes.source = this.context.createMediaElementSource(
-    //   this.$refs.elAudio
-    // );
     this.nodes.gain = this.context.createGain();
-    // Stereo Panner
     this.nodes.stereoPanner = this.context.createStereoPanner({ pan: 0 });
-    // Analyzer
     this.nodes.analyserTimeDomainData = this.context.createAnalyser();
     this.nodes.analyserFrequencyData = this.context.createAnalyser();
-    // Compressor
     this.nodes.compressor = this.context.createDynamicsCompressor();
-    // Noise Gate
+    this.nodes.biquadFilter = this.context.createBiquadFilter();
+    await this.context.audioWorklet.addModule("/noise-gate.js");
     this.nodes.noiseGate = new AudioWorkletNode(this.context, "noise-gate", {
       parameterData: {
         threshold: new Float32Array([this.noiseGateThreshold]),
@@ -373,19 +489,11 @@ export default {
   },
   methods: {
     seekThere(evt) {
-      let { x, y } = getMousePosition(evt);
+      let { x } = getMousePosition(evt);
       this.mouseX = x;
-      this.mouseY = y;
-      let width = this.$refs.waveformCanvas.width;
-      // let height = this.$refs.waveformCanvas.height;
-      const offset = (x / width) * this.nodes.source.buffer.duration;
-      this.seek = offset;
-      if (this.isPlaying) {
-        this.isPlaying = false;
-        setTimeout(() => {
-          this.isPlaying = true;
-        }, 0);
-      }
+      let w = this.$refs.canvasL1.width;
+      let d = this.nodes.source.buffer.duration;
+      this.seek = Math.floor((x / w) * d);
     },
     visualize() {
       const freqCanvasContext = this.$refs.frequencyCanvas.getContext("2d");
@@ -409,13 +517,18 @@ export default {
       const barWidth = 2.5 * (WIDTH / frequencyDataBufferLength);
 
       // Seek Line
-      const waveformCanvasContext = this.$refs.waveformCanvas.getContext("2d");
-      // const w = waveformCanvasContext.canvas.width;
-      const h = this.$refs.waveformCanvas.height;
+      const ctxL2 = this.$refs.canvasL2.getContext("2d");
+      const w = this.$refs.canvasL2.width;
+      const h = this.$refs.canvasL2.height;
 
       const draw = () => {
         requestAnimationFrame(draw);
-        waveformCanvasContext.fillRect(this.seek, 0, 1, h);
+        if (this.nodes.source) {
+          ctxL2.fillStyle = "rgb(200, 0, 0)";
+          let x = (this.seek / this.nodes.source.buffer.duration) * w;
+          ctxL2.clearRect(0, 0, w, h);
+          ctxL2.fillRect(x, 0, 1, h);
+        }
         // ---
         if (!this.isPlaying) return;
 
@@ -479,36 +592,62 @@ export default {
       };
     },
     drawFullWaveform() {
-      const canvasCtx = this.$refs.waveformCanvas.getContext("2d");
+      const canvasCtx = this.$refs.canvasL1.getContext("2d");
       const WIDTH = canvasCtx.canvas.width;
       const HEIGHT = canvasCtx.canvas.height;
 
-      const data = this.nodes.source.buffer.getChannelData(0);
-      const step = Math.ceil(data.length / WIDTH);
-      const amp = HEIGHT / 2;
-      for (let i = 0; i < WIDTH; i++) {
-        let min = 1.0;
-        let max = -1.0;
-        for (let j = 0; j < step; j++) {
-          let datum = data[i * step + j];
-          if (datum < min) {
-            min = datum;
-          }
-          if (datum > max) {
-            max = datum;
-          }
+      // clear canvas
+      canvasCtx.fillStyle = "rgb(255, 255, 255)";
+      canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      function getBins(audioBuffer) {
+        const data = audioBuffer;
+        const binCount = 2048;
+        const blockSize = Math.floor(data.length / binCount);
+        const bins = [];
+        for (let i = 0; i < binCount; i++) {
+          const avg =
+            data
+              .slice(i * blockSize, (i + 1) * blockSize)
+              .reduce((a, b) => a + Math.abs(b), 0) / blockSize;
+          bins.push(avg);
         }
-        canvasCtx.fillRect(
-          i,
-          (1 + min) * amp,
-          1,
-          Math.max(1, (max - min) * amp)
-        );
+        return bins;
+      }
+      const bins = getBins(this.nodes.source.buffer.getChannelData(0));
+
+      canvasCtx.fillStyle = "rgb(0, 200, 0)";
+
+      let min = 1.0;
+      let max = -1.0;
+      for (let bin of bins) {
+        if (bin < min) {
+          min = bin;
+        }
+        if (bin > max) {
+          max = bin;
+        }
+      }
+      const absMax = Math.max(min, max);
+      const binWidth = WIDTH / bins.length;
+      const y = HEIGHT / 2;
+      for (let i = 0; i < bins.length; i++) {
+        const binHeight = ((bins[i] / absMax) * HEIGHT) / 2;
+        const x = i * binWidth;
+        canvasCtx.fillRect(x, y, binWidth, -binHeight);
+        canvasCtx.fillRect(x, y, binWidth, binHeight);
       }
     },
     updateGraph() {
       for (const [nodeKey, destinations] of Object.entries(this.graph)) {
         const node = this.nodes[nodeKey];
+        if (!node) {
+          setTimeout(() => {
+            // retry
+            this.updateGraph();
+          }, 100);
+          return;
+        }
         node.disconnect();
         for (const dest of destinations) {
           if (dest !== "OUT") {
@@ -518,43 +657,61 @@ export default {
           }
         }
       }
-      console.log("graph:", this.graph);
+      // console.log("graph:", this.graph);
     },
-  },
-  watch: {
-    selectedAudioFile: {
-      handler: async function (val) {
-        const response = await fetch(val.path);
-        const audioData = await response.arrayBuffer();
-        const buffer = await this.context.decodeAudioData(audioData);
-        this.nodes.source = this.context.createBufferSource();
-        this.nodes.source.buffer = buffer;
-        console.log("source.buffer", this.nodes.source.buffer);
-        this.drawFullWaveform();
-        this.updateGraph();
-      },
-    },
-    isPlaying: function (yes) {
-      console.log("context.currentTime", this.context.currentTime);
-      if (yes && this.context.state === "suspended") {
+    play() {
+      // check if context is in suspended state (autoplay policy)
+      if (this.context.state === "suspended") {
         this.context.resume();
       }
 
-      // check if context is in suspended state (autoplay policy)
-      if (yes) {
+      const STEP = 1;
+      const currentSeek = this.seek;
+      if (currentSeek < this.nodes.source.buffer.duration) {
         const source = this.context.createBufferSource();
         const buffer = this.nodes.source.buffer;
         this.nodes.source.disconnect();
         this.nodes.source = source;
         this.nodes.source.buffer = buffer;
         this.updateGraph();
-        this.nodes.source.start(0, this.seek);
+        this.nodes.source.start(0, currentSeek, STEP);
         this.nodes.source.addEventListener("ended", () => {
-          this.seek = this.context.currentTime;
+          if (currentSeek === this.seek) {
+            this.seek += STEP;
+          }
+          // reached end of audio buffer
+          if (this.isPlaying) {
+            this.play();
+          } else {
+            this.pause();
+          }
         });
       } else {
-        this.nodes.source.stop(0);
+        this.pause();
+        this.seek = this.nodes.source.buffer.duration;
       }
+      this.isPlaying = true;
+    },
+    pause() {
+      this.nodes.source.stop(0);
+      this.isPlaying = false;
+    },
+  },
+  watch: {
+    selectedAudioFile: {
+      handler: async function (val) {
+        if (this.isPlaying) {
+          this.pause();
+        }
+        this.seek = 0;
+        const response = await fetch(val.path);
+        const audioData = await response.arrayBuffer();
+        const buffer = await this.context.decodeAudioData(audioData);
+        this.nodes.source = this.context.createBufferSource();
+        this.nodes.source.buffer = buffer;
+        this.drawFullWaveform();
+        this.updateGraph();
+      },
     },
     gain: function (val) {
       this.nodes.gain.gain.value = val;
@@ -588,12 +745,61 @@ export default {
         this.updateGraph();
       },
     },
-    isCompressorConnected: function (yes) {
-      if (yes) {
-        this.graph.source = ["compressor"];
-      } else {
-        this.graph.source = this.graph.compressor;
+    isCompressorConnected: {
+      immediate: true,
+      handler: function (yes) {
+        if (!this.graph.source) {
+          setTimeout(() => (this.isCompressorConnected = yes), 100);
+          return;
+        }
+        if (yes) {
+          this.graph.source = ["compressor"];
+        } else {
+          this.graph.source = this.graph.compressor;
+        }
+      },
+    },
+    isBiquadFilterConnected: {
+      immediate: true,
+      handler: function (yes) {
+        // assumes it is connected to the compressor
+        if (!this.graph.source) {
+          setTimeout(() => (this.isBiquadFilterConnected = yes), 100);
+          return;
+        }
+        if (yes) {
+          this.graph.compressor = ["biquadFilter"];
+        } else {
+          this.graph.compressor = this.graph.biquadFilter;
+        }
+      },
+    },
+    biquadFilterType: function (type) {
+      if (
+        ![
+          "lowpass",
+          "highpass",
+          "passband",
+          "lowshelf",
+          "highshelf",
+          "peaking",
+          "notch",
+          "allpass",
+        ].includes(type)
+      ) {
+        console.log("biquadFilter type cannot be:", type);
+        return;
       }
+      this.nodes.biquadFilter.type = type;
+    },
+    biquadFilterQ: function (val) {
+      this.nodes.biquadFilter.Q.value = val;
+    },
+    biquadFilterGain: function (val) {
+      this.nodes.biquadFilter.gain.value = val;
+    },
+    biquadFilterFrequency: function (val) {
+      this.nodes.biquadFilter.frequency.value = val;
     },
   },
 };
@@ -614,7 +820,19 @@ export default {
   transform-origin: 75px 75px;
   transform: rotate(-90deg);
 }
-canvas {
-  border: 4px solid black;
+.tab-content {
+  min-height: calc(264px + 16px);
+}
+
+.canvas-container {
+  position: relative;
+  border: 1px dotted lightgray;
+  width: 1024px;
+}
+.canvas-container canvas {
+  position: absolute;
+  background-color: transparent;
+  left: 0;
+  top: 0;
 }
 </style>
