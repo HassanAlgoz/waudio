@@ -21,16 +21,31 @@
             class="canvas-container mx-auto"
             style="height: 196px"
             @click="seekThere"
+            id="fullWaveformCanvas"
           >
+            <!-- Full Audio Waveform Canvas -->
             <canvas ref="canvasL1" width="1024px" height="196"></canvas>
             <canvas ref="canvasL2" width="1024px" height="196"></canvas>
           </div>
         </div>
       </div>
       <div class="row">
-        <div class="col text-center">
-          <div class="canvas-container mx-auto" style="height: 196px">
-            <canvas ref="frequencyCanvas" width="1024px" height="196"></canvas>
+        <div class="col">
+          <div class="d-flex justify-content-center">
+            <div
+              id="frequencyCanvas"
+              class="canvas-container"
+              style="height: 128px"
+            >
+              <canvas ref="frequencyCanvas" width="768px" height="128"></canvas>
+            </div>
+            <div
+              id="waveformCanvas"
+              class="canvas-container"
+              style="height: 128px"
+            >
+              <canvas ref="waveformCanvas" width="256px" height="128"></canvas>
+            </div>
           </div>
         </div>
       </div>
@@ -59,329 +74,244 @@
           </button>
         </div>
       </div>
-
-      <!-- #region Effects Tabs -->
       <div class="row">
-        <div class="col">
-          <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-              <a
-                class="nav-link active"
-                id="compressor-tab"
-                data-toggle="tab"
-                href="#compressor"
-                role="tab"
-                aria-controls="compressor"
-                aria-selected="true"
-                >Compressor</a
+        <div class="col-6">
+          <div v-if="nodes.compressor">
+            <h3>Compressor</h3>
+            <div class="form-group form-check">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="isCompressorConnectedControl"
+                v-model="isCompressorConnected"
+              />
+              <label class="form-check-label" for="isCompressorConnectedControl"
+                >Connect</label
               >
-            </li>
-            <li class="nav-item" role="presentation">
-              <a
-                class="nav-link"
-                id="noisegate-tab"
-                data-toggle="tab"
-                href="#noisegate"
-                role="tab"
-                aria-controls="noisegate"
-                aria-selected="false"
-                >Noise Gate</a
-              >
-            </li>
-            <li class="nav-item" role="presentation">
-              <a
-                class="nav-link"
-                id="pan-tab"
-                data-toggle="tab"
-                href="#pan"
-                role="tab"
-                aria-controls="pan"
-                aria-selected="false"
-                >Pan</a
-              >
-            </li>
-            <li class="nav-item" role="presentation">
-              <a
-                class="nav-link"
-                id="biquadFilter-tab"
-                data-toggle="tab"
-                href="#biquadFilter"
-                role="tab"
-                aria-controls="biquadFilter"
-                aria-selected="false"
-                >Biquad Filter</a
-              >
-            </li>
-          </ul>
-          <div class="tab-content" id="myTabContent">
-            <div
-              class="tab-pane fade show active"
-              id="compressor"
-              role="tabpanel"
-              aria-labelledby="compressor-tab"
-            >
-              <div v-if="nodes.compressor">
-                <div class="form-group form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="isCompressorConnectedControl"
-                    v-model="isCompressorConnected"
-                  />
-                  <label
-                    class="form-check-label"
-                    for="isCompressorConnectedControl"
-                    >Connect</label
-                  >
-                </div>
-                <div class="form-group row">
-                  <div class="col-2">
-                    <label for="thresholdControl">Threshold:</label>
-                  </div>
-                  <div class="col">
-                    <input
-                      type="range"
-                      class="custom-range"
-                      id="thresholdControl"
-                      min="-100"
-                      max="0"
-                      step="1"
-                      v-model="threshold"
-                    />
-                  </div>
-                  <div class="col-1">
-                    <span>{{ threshold }}</span>
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <div class="col-2">
-                    <label for="kneeControl">Knee:</label>
-                  </div>
-                  <div class="col">
-                    <input
-                      type="range"
-                      class="custom-range"
-                      id="kneeControl"
-                      min="0"
-                      max="40"
-                      step="1"
-                      v-model="knee"
-                    />
-                  </div>
-                  <div class="col-1">
-                    <span>{{ knee }}</span>
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <div class="col-2">
-                    <label for="ratioControl">Ratio:</label>
-                  </div>
-                  <div class="col">
-                    <input
-                      type="range"
-                      class="custom-range"
-                      id="ratioControl"
-                      min="1"
-                      max="20"
-                      step="0.1"
-                      v-model="ratio"
-                    />
-                  </div>
-                  <div class="col-1">
-                    <span>{{ ratio }}</span>
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <div class="col-2">
-                    <label for="attackControl">Attack Time:</label>
-                  </div>
-                  <div class="col">
-                    <input
-                      type="range"
-                      class="custom-range"
-                      id="attackControl"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      v-model="attack"
-                    />
-                  </div>
-                  <div class="col-1">
-                    <span>{{ attack }}</span>
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <div class="col-2">
-                    <label for="releaseControl">Release Time:</label>
-                  </div>
-                  <div class="col">
-                    <input
-                      type="range"
-                      class="custom-range"
-                      id="releaseControl"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      v-model="release"
-                    />
-                  </div>
-                  <div class="col-1">
-                    <span>{{ release }}</span>
-                  </div>
-                </div>
-              </div>
             </div>
-            <div
-              class="tab-pane fade"
-              id="noisegate"
-              role="tabpanel"
-              aria-labelledby="noisegate-tab"
-            >
-              <div class="form-group row">
-                <div class="col-3">
-                  <label for="noiseGateThresholdControl">Threshold:</label>
-                </div>
-                <div class="col">
-                  <input
-                    type="range"
-                    class="custom-range"
-                    id="noiseGateThresholdControl"
-                    min="0"
-                    max="0.01"
-                    step="0.0001"
-                    v-model="noiseGateThreshold"
-                  />
-                </div>
-                <div class="col-1">
-                  <span>{{ noiseGateThreshold }}</span>
-                </div>
-              </div>
-            </div>
-            <div
-              class="tab-pane fade"
-              id="pan"
-              role="tabpanel"
-              aria-labelledby="pan-tab"
-            >
-              <div class="form-group row">
-                <div class="col-2">
-                  <label for="panControl">Pan: {{ pan }}</label>
-                </div>
-                <div class="col">
-                  <input
-                    type="range"
-                    v-model="pan"
-                    min="-1"
-                    max="1"
-                    step="0.1"
-                    class="custom-range"
-                    id="panControl"
-                  />
-                </div>
-              </div>
-              <div class="form-group">
-                <div class="vertical-slider-wrapper">
-                  <label for="gainControl">Gain: {{ gain }}</label>
-                  <input
-                    type="range"
-                    v-model="gain"
-                    min="0"
-                    max="2"
-                    step="0.01"
-                    class="custom-range"
-                    id="gainControl"
-                  />
-                </div>
-              </div>
-            </div>
-            <div
-              class="tab-pane fade"
-              id="biquadFilter"
-              role="tabpanel"
-              aria-labelledby="pan-tab"
-            >
-              <div class="form-group row mt-2">
-                <div class="col-3">
-                  <div class="form-group">
-                    <label for="biqadFilterTypeControl">Filter Type</label>
-                  </div>
-                </div>
-                <div class="col-2">
-                  <select v-model="biquadFilterType" class="custom-select">
-                    <option value="lowpass">Low-pass</option>
-                    <option value="highpass">High-pass</option>
-                    <option value="bandpass">Band-pass</option>
-                    <option value="lowshelf">Low-shelf</option>
-                    <option value="highhself">High-shelf</option>
-                    <option value="peaking">Peaking</option>
-                    <option value="notch">Notch</option>
-                    <option value="allpass">All-pass</option>
-                  </select>
-                </div>
+            <div class="form-group row">
+              <div class="col-2">
+                <label for="thresholdControl">Threshold:</label>
               </div>
               <div class="col">
-                <div class="form-group form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="isBiquadFilterConnectedControl"
-                    v-model="isBiquadFilterConnected"
-                  />
-                  <label
-                    class="form-check-label"
-                    for="isBiquadFilterConnectedControl"
-                    >Connect</label
-                  >
-                </div>
-                <div class="form-group row">
-                  <div class="col-2">
-                    <label for="biquadFilterFrequencyControl">Frequency:</label>
-                  </div>
-                  <div class="col">
-                    <input
-                      type="number"
-                      v-model="biquadFilterFrequency"
-                      min="0"
-                      max="9000"
-                      step="10"
-                      id="biquadFilterFrequencyControl"
-                      class="form-control"
-                    />
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <div class="col-2">
-                    <label for="biquadFilterQControl">Q:</label>
-                  </div>
-                  <div class="col">
-                    <input
-                      type="number"
-                      v-model="biquadFilterQ"
-                      min="0"
-                      max="10"
-                      step="0.25"
-                      id="biquadFilterQControl"
-                      class="form-control"
-                    />
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <div class="col-2">
-                    <label for="biquadFilterGainControl">Gain:</label>
-                  </div>
-                  <div class="col">
-                    <input
-                      type="number"
-                      v-model="biquadFilterGain"
-                      min="0"
-                      max="2"
-                      step="0.1"
-                      id="biquadFilterGainControl"
-                      class="form-control"
-                    />
-                  </div>
-                </div>
+                <input
+                  type="range"
+                  class="custom-range"
+                  id="thresholdControl"
+                  min="-100"
+                  max="0"
+                  step="1"
+                  v-model="threshold"
+                />
               </div>
+              <div class="col-1">
+                <span>{{ threshold }}</span>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-2">
+                <label for="kneeControl">Knee:</label>
+              </div>
+              <div class="col">
+                <input
+                  type="range"
+                  class="custom-range"
+                  id="kneeControl"
+                  min="0"
+                  max="40"
+                  step="1"
+                  v-model="knee"
+                />
+              </div>
+              <div class="col-1">
+                <span>{{ knee }}</span>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-2">
+                <label for="ratioControl">Ratio:</label>
+              </div>
+              <div class="col">
+                <input
+                  type="range"
+                  class="custom-range"
+                  id="ratioControl"
+                  min="1"
+                  max="20"
+                  step="0.1"
+                  v-model="ratio"
+                />
+              </div>
+              <div class="col-1">
+                <span>{{ ratio }}</span>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-2">
+                <label for="attackControl">Attack Time:</label>
+              </div>
+              <div class="col">
+                <input
+                  type="range"
+                  class="custom-range"
+                  id="attackControl"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  v-model="attack"
+                />
+              </div>
+              <div class="col-1">
+                <span>{{ attack }}</span>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-2">
+                <label for="releaseControl">Release Time:</label>
+              </div>
+              <div class="col">
+                <input
+                  type="range"
+                  class="custom-range"
+                  id="releaseControl"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  v-model="release"
+                />
+              </div>
+              <div class="col-1">
+                <span>{{ release }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <h3>Filter</h3>
+          <div class="row">
+            <div class="col">
+              <div class="form-group form-check">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="isBiquadFilterConnectedControl"
+                  v-model="isBiquadFilterConnected"
+                />
+                <label
+                  class="form-check-label"
+                  for="isBiquadFilterConnectedControl"
+                  >Connect</label
+                >
+              </div>
+            </div>
+          </div>
+          <div class="form-group row">
+            <div class="col-2">
+              <label for="biquadFilterTypeControl">Type</label>
+            </div>
+            <div class="col">
+              <select
+                v-model="biquadFilterType"
+                class="custom-select"
+                id="biquadFilterTypeControl"
+              >
+                <option value="lowpass">Low-pass</option>
+                <option value="highpass">High-pass</option>
+                <option value="bandpass">Band-pass</option>
+                <option value="lowshelf">Low-shelf</option>
+                <option value="highhself">High-shelf</option>
+                <option value="peaking">Peaking</option>
+                <option value="notch">Notch</option>
+                <option value="allpass">All-pass</option>
+              </select>
+            </div>
+          </div>
+          <div class="col">
+            <div class="form-group row">
+              <div class="col-2">
+                <label for="biquadFilterFrequencyControl">Frequency:</label>
+              </div>
+              <div class="col">
+                <input
+                  type="number"
+                  v-model="biquadFilterFrequency"
+                  min="0"
+                  max="9000"
+                  step="10"
+                  id="biquadFilterFrequencyControl"
+                  class="form-control"
+                />
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-2">
+                <label for="biquadFilterQControl">Q:</label>
+              </div>
+              <div class="col">
+                <input
+                  type="number"
+                  v-model="biquadFilterQ"
+                  min="0"
+                  max="10"
+                  step="0.25"
+                  id="biquadFilterQControl"
+                  class="form-control"
+                />
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-2">
+                <label for="biquadFilterGainControl">Gain:</label>
+              </div>
+              <div class="col">
+                <input
+                  type="number"
+                  v-model="biquadFilterGain"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  id="biquadFilterGainControl"
+                  class="form-control"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-6">
+          <div class="form-group row">
+            <div class="col-2">
+              <label for="panControl">Pan: {{ pan }}</label>
+            </div>
+            <div class="col">
+              <input
+                type="range"
+                v-model="pan"
+                min="-1"
+                max="1"
+                step="0.1"
+                class="custom-range"
+                id="panControl"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="form-group row">
+            <div class="col-2">
+              <label for="gainControl">Gain: {{ gain }}</label>
+            </div>
+            <div class="col">
+              <input
+                type="range"
+                v-model="gain"
+                min="0"
+                max="2"
+                step="0.01"
+                class="custom-range"
+                id="gainControl"
+              />
             </div>
           </div>
         </div>
@@ -421,7 +351,7 @@ export default {
       audioBuffer: null,
       nodes: {
         source: null,
-        noiseGate: null,
+        // noiseGate: null,
         compressor: null,
         gain: null,
         stereoPanner: null,
@@ -439,7 +369,7 @@ export default {
       ratio: 3,
       attack: 0.02,
       release: 0.125,
-      noiseGateThreshold: 0.005,
+      // noiseGateThreshold: 0.005,
       graph: {
         source: ["compressor"],
         // noiseGate: ["compressor"],
@@ -472,12 +402,12 @@ export default {
     this.nodes.analyserFrequencyData = this.context.createAnalyser();
     this.nodes.compressor = this.context.createDynamicsCompressor();
     this.nodes.biquadFilter = this.context.createBiquadFilter();
-    await this.context.audioWorklet.addModule("/noise-gate.js");
-    this.nodes.noiseGate = new AudioWorkletNode(this.context, "noise-gate", {
-      parameterData: {
-        threshold: new Float32Array([this.noiseGateThreshold]),
-      },
-    });
+    // await this.context.audioWorklet.addModule("/noise-gate.js");
+    // this.nodes.noiseGate = new AudioWorkletNode(this.context, "noise-gate", {
+    //   parameterData: {
+    //     threshold: new Float32Array([this.noiseGateThreshold]),
+    //   },
+    // });
     this.nodes.source = this.context.createMediaElementSource(
       this.$refs.elAudio
     );
@@ -494,24 +424,21 @@ export default {
     },
     visualize() {
       const freqCanvasContext = this.$refs.frequencyCanvas.getContext("2d");
-      const WIDTH = freqCanvasContext.canvas.width;
-      const HEIGHT = freqCanvasContext.canvas.height;
+      const waveformCanvasContext = this.$refs.waveformCanvas.getContext("2d");
 
       // TimeDomain Data (Waveform)
       this.nodes.analyserTimeDomainData.fftSize = 2 ** 11;
       this.nodes.analyserTimeDomainData.smoothingTimeConstant = 0.8;
-      let timeDomainDataBufferLength = this.nodes.analyserTimeDomainData
-        .frequencyBinCount;
-      let timeDomainDataArray = new Uint8Array(timeDomainDataBufferLength);
-      const sliceWidth = (WIDTH * 1.0) / timeDomainDataBufferLength;
+      let timeDomainDataArray = new Uint8Array(
+        this.nodes.analyserTimeDomainData.frequencyBinCount
+      );
 
       // Frequency Data (Frequency Bars)
       this.nodes.analyserFrequencyData.fftSize = 2 ** 8;
       this.nodes.analyserFrequencyData.smoothingTimeConstant = 0.8;
-      let frequencyDataBufferLength = this.nodes.analyserFrequencyData
-        .frequencyBinCount;
-      let frequencyDataArray = new Uint8Array(frequencyDataBufferLength);
-      const barWidth = 2.5 * (WIDTH / frequencyDataBufferLength);
+      let frequencyDataArray = new Uint8Array(
+        this.nodes.analyserFrequencyData.frequencyBinCount
+      );
 
       // Seek Line
       const ctxL2 = this.$refs.canvasL2.getContext("2d");
@@ -519,7 +446,7 @@ export default {
       const h = this.$refs.canvasL2.height;
       const draw = () => {
         requestAnimationFrame(draw);
-        if (this.audioBuffer) {
+        if (this.audioBuffer && this.$refs.elAudio) {
           ctxL2.fillStyle = "rgb(200, 0, 0)";
           let x =
             (this.$refs.elAudio.currentTime / this.audioBuffer.duration) * w;
@@ -529,44 +456,49 @@ export default {
         // ---
         if (!this.isPlaying) return;
 
-        // Clear Frequency canvas
-        freqCanvasContext.fillStyle = "rgb(200, 200, 200)";
-        freqCanvasContext.fillRect(0, 0, WIDTH, HEIGHT);
-
         this.nodes.analyserFrequencyData.getByteFrequencyData(
           frequencyDataArray
         );
-        drawFrequencyBars(frequencyDataArray, barWidth);
+        drawFrequencyBars(frequencyDataArray);
 
         this.nodes.analyserTimeDomainData.getByteTimeDomainData(
           timeDomainDataArray
         );
-        drawWaveform(timeDomainDataArray, sliceWidth);
+        drawWaveform(timeDomainDataArray);
       };
       draw();
 
-      const drawWaveform = (dataArray, sliceWidth) => {
-        freqCanvasContext.lineWidth = 2;
-        freqCanvasContext.strokeStyle = "rgb(0, 0, 0)";
-        freqCanvasContext.beginPath();
+      const drawWaveform = (dataArray) => {
+        const WIDTH = waveformCanvasContext.canvas.width;
+        const HEIGHT = waveformCanvasContext.canvas.height;
+        waveformCanvasContext.clearRect(0, 0, WIDTH, HEIGHT);
+
+        const sliceWidth = (WIDTH * 1.0) / dataArray.length;
+        waveformCanvasContext.lineWidth = 2;
+        waveformCanvasContext.strokeStyle = "rgb(0, 0, 0)";
+        waveformCanvasContext.beginPath();
         let x = 0;
         for (let i = 0; i < dataArray.length; i++) {
-          let v = dataArray[i] / 128.0;
+          let v = dataArray[i] / 128;
           let y = (v * HEIGHT) / 2;
 
           if (i === 0) {
-            freqCanvasContext.moveTo(x, y);
+            waveformCanvasContext.moveTo(x, y);
           } else {
-            freqCanvasContext.lineTo(x, y);
+            waveformCanvasContext.lineTo(x, y);
           }
 
           x += sliceWidth;
         }
-        freqCanvasContext.lineTo(WIDTH, HEIGHT / 2);
-        freqCanvasContext.stroke();
+        waveformCanvasContext.lineTo(WIDTH, HEIGHT / 2);
+        waveformCanvasContext.stroke();
       };
 
-      const drawFrequencyBars = (dataArray, barWidth) => {
+      const drawFrequencyBars = (dataArray) => {
+        const WIDTH = freqCanvasContext.canvas.width;
+        const HEIGHT = freqCanvasContext.canvas.height;
+        freqCanvasContext.clearRect(0, 0, WIDTH, HEIGHT);
+        const barWidth = 2.5 * (WIDTH / dataArray.length);
         freqCanvasContext.lineWidth = 2;
         freqCanvasContext.strokeStyle = "rgb(0, 0, 0)";
         freqCanvasContext.beginPath();
@@ -613,7 +545,7 @@ export default {
       }
       const bins = getBins(this.audioBuffer.getChannelData(0));
 
-      canvasCtx.fillStyle = "rgb(0, 200, 0)";
+      canvasCtx.fillStyle = "rgb(0, 196, 0)";
 
       let min = 1.0;
       let max = -1.0;
@@ -704,11 +636,11 @@ export default {
     release: function (val) {
       this.nodes.compressor.release.value = val;
     },
-    noiseGateThreshold: function (val) {
-      this.nodes.noiseGate.parameters
-        .get("threshold")
-        .setValueAtTime(val, this.context.currentTime);
-    },
+    // noiseGateThreshold: function (val) {
+    //   this.nodes.noiseGate.parameters
+    //     .get("threshold")
+    //     .setValueAtTime(val, this.context.currentTime);
+    // },
     graph: {
       deep: true,
       handler: function () {
@@ -819,8 +751,20 @@ export default {
 .canvas-container {
   position: relative;
   border: 1px dotted lightgray;
+}
+#fullWaveformCanvas,
+#fullWaveformCanvas canvas {
   width: 1024px;
 }
+#frequencyCanvas,
+#frequencyCanvas canvas {
+  width: 768px;
+}
+#waveformCanvas,
+#waveformCanvas canvas {
+  width: 256px;
+}
+
 .canvas-container canvas {
   position: absolute;
   background-color: transparent;
