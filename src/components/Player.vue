@@ -59,7 +59,7 @@
             @playing="isPlaying = true"
             @pause="isPlaying = false" -->
           <button
-            class="btn btn-primary"
+            class="btn btn-primary mt-2"
             @click="
               () => {
                 if (!isPlaying) {
@@ -74,6 +74,7 @@
           </button>
         </div>
       </div>
+      <hr />
       <div class="row">
         <div class="col-6">
           <div v-if="nodes.compressor">
