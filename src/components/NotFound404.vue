@@ -7,9 +7,7 @@
       <p>
         No page at: <code>{{ $route.fullPath }}</code>
       </p>
-      <p>
-        Go to <router-link :to="{ name: 'Dashboard' }">Dashboard</router-link>
-      </p>
+      <p>Go to <router-link :to="{ name: 'Player' }">Player</router-link></p>
     </article>
   </main>
 </template>
