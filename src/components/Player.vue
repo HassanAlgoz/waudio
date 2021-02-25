@@ -72,232 +72,33 @@
           >
             {{ isPlaying ? "Pause" : "Play" }}
           </button>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              v-model="enableEffects"
+              id="enableEffectsControl"
+            />
+            <label class="form-check-label" for="enableEffectsControl">
+              Enable Effects
+            </label>
+          </div>
         </div>
       </div>
       <hr />
       <div class="row">
         <div class="col-6">
-          <div v-if="nodes.compressor">
+          <div>
             <h3>Compressor</h3>
-            <div class="form-group form-check">
-              <input
-                type="checkbox"
-                class="form-check-input"
-                id="isCompressorConnectedControl"
-                v-model="isCompressorConnected"
-              />
-              <label class="form-check-label" for="isCompressorConnectedControl"
-                >Connect</label
-              >
-            </div>
-            <div class="form-group row">
-              <div class="col-2">
-                <label for="thresholdControl">Threshold:</label>
-              </div>
-              <div class="col">
-                <input
-                  type="range"
-                  class="custom-range"
-                  id="thresholdControl"
-                  min="-100"
-                  max="0"
-                  step="1"
-                  v-model="threshold"
-                />
-              </div>
-              <div class="col-1">
-                <span>{{ threshold }}</span>
-              </div>
-            </div>
-            <div class="form-group row">
-              <div class="col-2">
-                <label for="kneeControl">Knee:</label>
-              </div>
-              <div class="col">
-                <input
-                  type="range"
-                  class="custom-range"
-                  id="kneeControl"
-                  min="0"
-                  max="40"
-                  step="1"
-                  v-model="knee"
-                />
-              </div>
-              <div class="col-1">
-                <span>{{ knee }}</span>
-              </div>
-            </div>
-            <div class="form-group row">
-              <div class="col-2">
-                <label for="ratioControl">Ratio:</label>
-              </div>
-              <div class="col">
-                <input
-                  type="range"
-                  class="custom-range"
-                  id="ratioControl"
-                  min="1"
-                  max="20"
-                  step="0.1"
-                  v-model="ratio"
-                />
-              </div>
-              <div class="col-1">
-                <span>{{ ratio }}</span>
-              </div>
-            </div>
-            <div class="form-group row">
-              <div class="col-2">
-                <label for="attackControl">Attack Time:</label>
-              </div>
-              <div class="col">
-                <input
-                  type="range"
-                  class="custom-range"
-                  id="attackControl"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  v-model="attack"
-                />
-              </div>
-              <div class="col-1">
-                <span>{{ attack }}</span>
-              </div>
-            </div>
-            <div class="form-group row">
-              <div class="col-2">
-                <label for="releaseControl">Release Time:</label>
-              </div>
-              <div class="col">
-                <input
-                  type="range"
-                  class="custom-range"
-                  id="releaseControl"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  v-model="release"
-                />
-              </div>
-              <div class="col-1">
-                <span>{{ release }}</span>
-              </div>
-            </div>
+            <CompressorControls :initControls="compressor" />
           </div>
         </div>
         <div class="col-6">
-          <h3>Filter</h3>
-          <div class="row">
-            <div class="col">
-              <div class="form-group form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="isBiquadFilterConnectedControl"
-                  v-model="isBiquadFilterConnected"
-                />
-                <label
-                  class="form-check-label"
-                  for="isBiquadFilterConnectedControl"
-                  >Connect</label
-                >
-              </div>
-            </div>
-          </div>
-          <div class="form-group row">
-            <div class="col-2">
-              <label for="biquadFilterTypeControl">Type</label>
-            </div>
-            <div class="col">
-              <select
-                v-model="biquadFilterType"
-                class="custom-select"
-                id="biquadFilterTypeControl"
-              >
-                <option value="lowpass">Low-pass</option>
-                <option value="highpass">High-pass</option>
-                <option value="bandpass">Band-pass</option>
-                <option value="lowshelf">Low-shelf</option>
-                <option value="highhself">High-shelf</option>
-                <option value="peaking">Peaking</option>
-                <option value="notch">Notch</option>
-                <option value="allpass">All-pass</option>
-              </select>
-            </div>
-          </div>
-          <div class="col">
-            <div class="form-group row">
-              <div class="col-2">
-                <label for="biquadFilterFrequencyControl">Frequency:</label>
-              </div>
-              <div class="col">
-                <input
-                  type="number"
-                  v-model="biquadFilterFrequency"
-                  min="0"
-                  max="9000"
-                  step="10"
-                  id="biquadFilterFrequencyControl"
-                  class="form-control"
-                />
-              </div>
-            </div>
-            <div class="form-group row">
-              <div class="col-2">
-                <label for="biquadFilterQControl">Q:</label>
-              </div>
-              <div class="col">
-                <input
-                  type="number"
-                  v-model="biquadFilterQ"
-                  min="0"
-                  max="10"
-                  step="0.25"
-                  id="biquadFilterQControl"
-                  class="form-control"
-                />
-              </div>
-            </div>
-            <div class="form-group row">
-              <div class="col-2">
-                <label for="biquadFilterGainControl">Gain:</label>
-              </div>
-              <div class="col">
-                <input
-                  type="number"
-                  v-model="biquadFilterGain"
-                  min="0"
-                  max="2"
-                  step="0.1"
-                  id="biquadFilterGainControl"
-                  class="form-control"
-                />
-              </div>
-            </div>
-          </div>
+          <h3>Equalizer</h3>
+          <EqualizerControls :initControls="filters" />
         </div>
       </div>
       <div class="row">
-        <div class="col-6">
-          <div class="form-group row">
-            <div class="col-2">
-              <label for="panControl">Pan: {{ pan }}</label>
-            </div>
-            <div class="col">
-              <input
-                type="range"
-                v-model="pan"
-                min="-1"
-                max="1"
-                step="0.1"
-                class="custom-range"
-                id="panControl"
-              />
-            </div>
-          </div>
-        </div>
         <div class="col-6">
           <div class="form-group row">
             <div class="col-2">
@@ -323,10 +124,15 @@
 
 <script>
 import { getMousePosition } from "../utils";
+import EqualizerControls from "./EqualizerControls";
+import CompressorControls from "./CompressorControls";
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 export default {
   name: "Player",
-  components: {},
+  components: {
+    EqualizerControls,
+    CompressorControls,
+  },
   data() {
     return {
       audioFiles: [
@@ -350,43 +156,35 @@ export default {
       selectedAudioFile: {},
       context: null,
       audioBuffer: null,
-      nodes: {
-        source: null,
-        // noiseGate: null,
-        compressor: null,
-        gain: null,
-        stereoPanner: null,
-        analyserTimeDomainData: null,
-        analyserFrequencyData: null,
-        biquadFilter: null,
+      enableEffects: true,
+      nodes: {},
+      filters: {
+        HF: {
+          freq: 4700,
+          gain: 50,
+        },
+        LF: {
+          freq: 35,
+          gain: 50,
+        },
+        HMF: {
+          freq: 800,
+          Q: 0.7,
+        },
+        LMF: {
+          freq: 880,
+          Q: 0.7,
+        },
+      },
+      compressor: {
+        threshold: -20,
+        knee: 40,
+        ratio: 3,
+        attack: 0.02,
+        release: 0.125,
       },
       gain: 1,
-      pan: 0,
       isPlaying: false,
-      isCompressorConnected: false,
-      isBiquadFilterConnected: false,
-      threshold: -20,
-      knee: 40,
-      ratio: 3,
-      attack: 0.02,
-      release: 0.125,
-      // noiseGateThreshold: 0.005,
-      graph: {
-        source: ["compressor"],
-        // noiseGate: ["compressor"],
-        compressor: ["biquadFilter"],
-        biquadFilter: ["gain"],
-        gain: [
-          "stereoPanner",
-          "analyserTimeDomainData",
-          "analyserFrequencyData",
-        ],
-        stereoPanner: ["OUT"],
-      },
-      biquadFilterType: "lowpass",
-      biquadFilterFrequency: 1000,
-      biquadFilterQ: 1.0,
-      biquadFilterGain: 1.0,
     };
   },
   created() {
@@ -397,21 +195,51 @@ export default {
   },
   async mounted() {
     this.context = new AudioContext();
-    this.nodes.gain = this.context.createGain();
-    this.nodes.stereoPanner = this.context.createStereoPanner({ pan: 0 });
-    this.nodes.analyserTimeDomainData = this.context.createAnalyser();
-    this.nodes.analyserFrequencyData = this.context.createAnalyser();
-    this.nodes.compressor = this.context.createDynamicsCompressor();
-    this.nodes.biquadFilter = this.context.createBiquadFilter();
-    // await this.context.audioWorklet.addModule("/noise-gate.js");
-    // this.nodes.noiseGate = new AudioWorkletNode(this.context, "noise-gate", {
-    //   parameterData: {
-    //     threshold: new Float32Array([this.noiseGateThreshold]),
-    //   },
-    // });
+    // Create Audio Graph Nodes
     this.nodes.source = this.context.createMediaElementSource(
       this.$refs.elAudio
     );
+    this.nodes.effectsGate = this.context.createGain();
+    this.nodes.compressor = this.context.createDynamicsCompressor();
+    this.nodes.highShelf = this.context.createBiquadFilter();
+    this.nodes.lowShelf = this.context.createBiquadFilter();
+    this.nodes.highPass = this.context.createBiquadFilter();
+    this.nodes.lowPass = this.context.createBiquadFilter();
+    this.nodes.gain = this.context.createGain();
+    this.nodes.outGate = this.context.createGain();
+    this.nodes.analyserFrequencyData = this.context.createAnalyser();
+    this.nodes.analyserTimeDomainData = this.context.createAnalyser();
+
+    // Connect Graph Nodes
+    this.nodes.source.connect(this.nodes.effectsGate);
+    this.nodes.effectsGate.connect(this.nodes.compressor);
+    this.nodes.compressor.connect(this.nodes.highShelf);
+    this.nodes.highShelf.connect(this.nodes.lowShelf);
+    this.nodes.lowShelf.connect(this.nodes.highPass);
+    this.nodes.highPass.connect(this.nodes.lowPass);
+    this.nodes.lowPass.connect(this.nodes.gain);
+    this.nodes.gain.connect(this.nodes.outGate);
+    this.nodes.outGate.connect(this.context.destination);
+    this.nodes.outGate.connect(this.nodes.analyserTimeDomainData);
+    this.nodes.outGate.connect(this.nodes.analyserFrequencyData);
+
+    // Initialize Filters' Parameters
+    this.nodes.highShelf.type = "highshelf";
+    this.nodes.highShelf.frequency.value = 4700;
+    this.nodes.highShelf.gain.value = 50;
+
+    this.nodes.lowShelf.type = "lowshelf";
+    this.nodes.lowShelf.frequency.value = 35;
+    this.nodes.lowShelf.gain.value = 50;
+
+    this.nodes.highPass.type = "highpass";
+    this.nodes.highPass.frequency.value = 800;
+    this.nodes.highPass.Q.value = 0.7;
+
+    this.nodes.lowPass.type = "lowpass";
+    this.nodes.lowPass.frequency.value = 880;
+    this.nodes.lowPass.Q.value = 0.7;
+
     // Draw
     this.visualize();
   },
@@ -568,26 +396,6 @@ export default {
         canvasCtx.fillRect(x, y, binWidth, binHeight);
       }
     },
-    updateGraph() {
-      for (const [nodeKey, destinations] of Object.entries(this.graph)) {
-        const node = this.nodes[nodeKey];
-        if (!node) {
-          setTimeout(() => {
-            // retry
-            this.updateGraph();
-          }, 100);
-          return;
-        }
-        node.disconnect();
-        for (const dest of destinations) {
-          if (dest !== "OUT") {
-            node.connect(this.nodes[dest]);
-          } else {
-            node.connect(this.context.destination);
-          }
-        }
-      }
-    },
     play() {
       // check if context is in suspended state (autoplay policy)
       if (this.context.state === "suspended") {
@@ -611,120 +419,63 @@ export default {
         const audioData = await response.arrayBuffer();
         const audioBuffer = await this.context.decodeAudioData(audioData);
         this.audioBuffer = audioBuffer;
-
         this.drawFullWaveform();
-        this.updateGraph();
+      },
+    },
+    enableEffects: {
+      handler: function (yes) {
+        if (yes) {
+          this.nodes.source.disconnect();
+          this.nodes.source.connect(this.nodes.effectsGate);
+          this.nodes.gain.connect(this.nodes.outGate);
+        } else {
+          this.nodes.source.disconnect();
+          this.nodes.gain.disconnect();
+          this.nodes.source.connect(this.nodes.outGate);
+        }
       },
     },
     gain: function (val) {
       this.nodes.gain.gain.value = val;
     },
-    pan: function (val) {
-      this.nodes.stereoPanner.pan.value = val;
+    "filters.HF.freq": function (val) {
+      this.nodes.highShelf.frequency.value = val;
     },
-    threshold: function (val) {
+    "filters.HF.gain": function (val) {
+      this.nodes.highShelf.gain.value = val;
+    },
+    "filters.LF.freq": function (val) {
+      this.nodes.lowShelf.frequency.value = val;
+    },
+    "filters.LF.gain": function (val) {
+      this.nodes.lowShelf.gain.value = val;
+    },
+    "filters.HMF.freq": function (val) {
+      this.nodes.highPass.frequency.value = val;
+    },
+    "filters.HMF.Q": function (val) {
+      this.nodes.highPass.Q.value = val;
+    },
+    "filters.LMF.freq": function (val) {
+      this.nodes.lowPass.frequency.value = val;
+    },
+    "filters.LMF.Q": function (val) {
+      this.nodes.lowPass.Q.value = val;
+    },
+    "compressor.threshold": function (val) {
       this.nodes.compressor.threshold.value = val;
     },
-    knee: function (val) {
+    "compressor.knee": function (val) {
       this.nodes.compressor.knee.value = val;
     },
-    ratio: function (val) {
+    "compressor.ratio": function (val) {
       this.nodes.compressor.ratio.value = val;
     },
-    attack: function (val) {
+    "compressor.attack": function (val) {
       this.nodes.compressor.attack.value = val;
     },
-    release: function (val) {
+    "compressor.release": function (val) {
       this.nodes.compressor.release.value = val;
-    },
-    // noiseGateThreshold: function (val) {
-    //   this.nodes.noiseGate.parameters
-    //     .get("threshold")
-    //     .setValueAtTime(val, this.context.currentTime);
-    // },
-    graph: {
-      deep: true,
-      handler: function () {
-        this.updateGraph();
-      },
-    },
-    isCompressorConnected: {
-      immediate: true,
-      handler: function (yes) {
-        if (!this.graph.source) {
-          setTimeout(() => {
-            this.isCompressorConnected = yes;
-          }, 100);
-          return;
-        }
-        if (yes) {
-          this.graph.source = ["compressor"];
-          if (this.isBiquadFilterConnected) {
-            this.graph.compressor = ["biquadFilter"];
-          } else {
-            this.graph.compressor = ["gain"];
-          }
-        } else {
-          if (this.isBiquadFilterConnected) {
-            this.graph.source = ["biquadFilter"];
-          } else {
-            this.graph.source = ["gain"];
-          }
-        }
-      },
-    },
-    isBiquadFilterConnected: {
-      immediate: true,
-      handler: function (yes) {
-        // assumes it is connected to the compressor
-        if (!this.graph.source) {
-          setTimeout(() => {
-            this.isBiquadFilterConnected = yes;
-          }, 100);
-          return;
-        }
-        if (yes) {
-          this.graph.biquadFilter = ["gain"];
-          if (this.isCompressorConnected) {
-            this.graph.compressor = ["biquadFilter"];
-          } else {
-            this.graph.source = ["biquadFilter"];
-          }
-        } else {
-          if (this.isCompressorConnected) {
-            this.graph.compressor = ["gain"];
-          } else {
-            this.graph.source = ["gain"];
-          }
-        }
-      },
-    },
-    biquadFilterType: function (type) {
-      if (
-        ![
-          "lowpass",
-          "highpass",
-          "passband",
-          "lowshelf",
-          "highshelf",
-          "peaking",
-          "notch",
-          "allpass",
-        ].includes(type)
-      ) {
-        console.log("biquadFilter type cannot be:", type);
-        return;
-      }
-      this.nodes.biquadFilter.type = type;
-    },
-    biquadFilterQ: function (val) {
-      this.nodes.biquadFilter.Q.value = val;
-    },
-    biquadFilterGain: function (val) {
-      this.nodes.biquadFilter.gain.value = val;
-    },
-    biquadFilterFrequency: function (val) {
-      this.nodes.biquadFilter.frequency.value = val;
     },
   },
 };
@@ -773,3 +524,5 @@ export default {
   top: 0;
 }
 </style>
+
+
