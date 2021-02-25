@@ -53,11 +53,15 @@
     <div class="container">
       <div class="row">
         <div class="col text-center">
-          <audio :src="selectedAudioFile.path" ref="elAudio"></audio>
-          <!-- @ended="isPlaying = false"
+          <audio
+            :src="selectedAudioFile.path"
+            ref="elAudio"
+            @ended="isPlaying = false"
             @play="isPlaying = true"
             @playing="isPlaying = true"
-            @pause="isPlaying = false" -->
+            @pause="isPlaying = false"
+          ></audio>
+
           <button
             class="btn btn-primary mt-2"
             @click="
@@ -402,11 +406,9 @@ export default {
         this.context.resume();
       }
       this.$refs.elAudio.play();
-      this.isPlaying = true;
     },
     pause() {
       this.$refs.elAudio.pause();
-      this.isPlaying = false;
     },
   },
   watch: {
