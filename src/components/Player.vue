@@ -3,12 +3,12 @@
     <article class="container-fluid">
       <div class="row">
         <div class="col">
-          <h1>Online Player</h1>
+          <h1>Player</h1>
         </div>
       </div>
       <div class="row">
-        <div class="col">
-          <select v-model="selectedAudioFile">
+        <div class="col-2">
+          <select v-model="selectedAudioFile" class="custom-select">
             <option v-for="file in audioFiles" :value="file" :key="file.title">
               {{ file.title }}
             </option>
@@ -51,6 +51,40 @@
       </div>
     </article>
     <div class="container">
+      <div class="row mt-2">
+        <div class="col-1">
+          <label for="rmsMeter">RMS </label>
+        </div>
+        <div class="col-3">
+          <meter
+            min="0"
+            max="1"
+            optimum="0.5"
+            low="0.3"
+            high="0.7"
+            :value="features.rms"
+            id="rmsMeter"
+          >
+            {{ features.rms }}
+          </meter>
+        </div>
+        <div class="col-1">
+          <label for="loudnessMeter">Loudness </label>
+        </div>
+        <div class="col-3">
+          <meter
+            min="0"
+            max="24"
+            optimum="12"
+            low="6"
+            high="18"
+            :value="features.loudness.total"
+            id="loudnessMeter"
+          >
+            {{ features.loudness.total }}
+          </meter>
+        </div>
+      </div>
       <div class="row">
         <div class="col text-center">
           <audio
@@ -63,7 +97,7 @@
           ></audio>
 
           <button
-            class="btn btn-primary mt-2"
+            class="btn btn-primary"
             @click="
               () => {
                 if (!isPlaying) {
@@ -88,6 +122,80 @@
             </label>
           </div>
         </div>
+        <div class="col-4">
+          <!-- Example split danger button -->
+          <div class="btn-group">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              v-if="isPreset && !selectedPreset.isFavorite"
+              @click="presets[presetIndex].isFavorite = true"
+            >
+              Favourite Preset
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              v-if="isPreset && selectedPreset.isFavorite"
+              @click="presets[presetIndex].isFavorite = false"
+            >
+              Unfavorite Preset
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              v-if="!isPreset"
+              @click="showPresetSaveModal = true"
+            >
+              Save as Preset
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary dropdown-toggle dropdown-toggle-split"
+              data-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <button type="button" class="btn btn-secondary">E</button>
+            <div class="dropdown-menu">
+              <template v-for="preset in presets.filter((p) => p.isFavorite)">
+                <a
+                  :key="preset.name"
+                  class="dropdown-item"
+                  :class="{
+                    'text-primary': isPreset && preset == presets[presetIndex],
+                  }"
+                  href=""
+                  @click.prevent="
+                    presetIndex = presets.findIndex(
+                      (p) => p.name == preset.name
+                    )
+                  "
+                  >{{ preset.name }}</a
+                >
+              </template>
+              <div class="dropdown-divider"></div>
+              <template v-for="preset in presets.filter((p) => !p.isFavorite)">
+                <a
+                  :key="preset.name"
+                  class="dropdown-item"
+                  :class="{
+                    'text-primary': isPreset && preset == presets[presetIndex],
+                  }"
+                  href=""
+                  @click.prevent="
+                    presetIndex = presets.findIndex(
+                      (p) => p.name == preset.name
+                    )
+                  "
+                  >{{ preset.name }}</a
+                >
+              </template>
+            </div>
+          </div>
+        </div>
       </div>
       <hr />
       <div class="row">
@@ -102,27 +210,33 @@
           <EqualizerControls :initControls="filters" />
         </div>
       </div>
-      <div class="row">
-        <div class="col-6">
-          <div class="form-group row">
-            <div class="col-2">
-              <label for="gainControl">Gain: {{ gain }}</label>
-            </div>
-            <div class="col">
-              <input
-                type="range"
-                v-model="gain"
-                min="0"
-                max="2"
-                step="0.01"
-                class="custom-range"
-                id="gainControl"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
+    <Modal v-if="showPresetSaveModal" @close="showPresetSaveModal = false">
+      <h3 slot="header">Save Preset</h3>
+      <div slot="body">
+        <form @submit.prevent="savePreset">
+          <div class="form-group">
+            <label for="presetName">Preset Name</label>
+            <input
+              class="form-control"
+              type="text"
+              name="presetName"
+              v-model="newPreset.name"
+            />
+          </div>
+          <div>
+            <pre>
+preset: {{ JSON.stringify({ filters, compressor }, null, 2) }}</pre
+            >
+          </div>
+          <div class="d-flex bd-highlight mb-3">
+            <button type="submit" class="btn btn-success mr-auto">
+              Save Preset
+            </button>
+          </div>
+        </form>
+      </div>
+    </Modal>
   </main>
 </template>
 
@@ -130,12 +244,14 @@
 import { getMousePosition } from "../utils";
 import EqualizerControls from "./EqualizerControls";
 import CompressorControls from "./CompressorControls";
+import Modal from "./Modal";
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 export default {
   name: "Player",
   components: {
     EqualizerControls,
     CompressorControls,
+    Modal,
   },
   data() {
     return {
@@ -156,8 +272,37 @@ export default {
           title: "test test",
           path: "/samples/test.wav",
         },
+        {
+          title: "restaurant",
+          path: "/samples/ee.columbia.edu/noise/restaurant.wav",
+        },
       ],
       selectedAudioFile: {},
+      presets: [
+        {
+          name: "Male Voice 1",
+          isFavorite: true,
+        },
+        {
+          name: "Male Voice 2",
+          isFavorite: true,
+        },
+        {
+          name: "Female Voice 1",
+          isFavorite: false,
+        },
+        {
+          name: "Female Voice 2",
+          isFavorite: false,
+        },
+      ],
+      presetIndex: 0,
+      isPreset: false,
+      showPresetSaveModal: false,
+      newPreset: {
+        name: "",
+        isFavorite: true,
+      },
       context: null,
       audioBuffer: null,
       enableEffects: true,
@@ -165,19 +310,19 @@ export default {
       filters: {
         HF: {
           freq: 4700,
-          gain: 50,
+          gain: 40,
         },
         LF: {
           freq: 35,
-          gain: 50,
+          gain: 40,
         },
         HMF: {
           freq: 800,
-          Q: 0.7,
+          Q: 1.0,
         },
         LMF: {
           freq: 880,
-          Q: 0.7,
+          Q: 1.0,
         },
       },
       compressor: {
@@ -186,13 +331,21 @@ export default {
         ratio: 3,
         attack: 0.02,
         release: 0.125,
+        gain: 1.0,
       },
-      gain: 1,
       isPlaying: false,
+      features: {
+        rms: 0,
+        loudness: {
+          total: 0,
+        },
+      },
     };
   },
   created() {
     this.selectedAudioFile = this.audioFiles[0];
+    this.presetIndex = 0;
+    this.isPreset = true;
   },
   destroyed() {
     this.context.close();
@@ -244,10 +397,46 @@ export default {
     this.nodes.lowPass.frequency.value = 880;
     this.nodes.lowPass.Q.value = 0.7;
 
+    // Medya Analyzer: https://meyda.js.org/guides/online-web-audio
+    if (typeof window.Meyda === "undefined") {
+      console.log("Meyda could not be found! Have you included it?");
+    } else {
+      const analyzer = window.Meyda.createMeydaAnalyzer({
+        audioContext: this.context,
+        source: this.nodes.source,
+        bufferSize: 1024,
+        featureExtractors: ["rms", "loudness"],
+        callback: (features) => {
+          this.features = features;
+        },
+      });
+      analyzer.start();
+    }
+
     // Draw
     this.visualize();
   },
+  computed: {
+    selectedPreset() {
+      if (this.isPreset) {
+        return this.presets[this.presetIndex];
+      } else {
+        return null;
+      }
+    },
+  },
   methods: {
+    savePreset() {
+      this.showPresetSaveModal = false;
+      this.presets.push({
+        name: this.newPreset.name,
+        isFavorite: true,
+        filters: this.filters,
+        compressor: this.compressor,
+      });
+      this.presets.name = "";
+      this.presetIndex = this.presets.length - 1;
+    },
     seekThere(evt) {
       let { x } = getMousePosition(evt);
       this.mouseX = x;
@@ -267,7 +456,7 @@ export default {
       );
 
       // Frequency Data (Frequency Bars)
-      this.nodes.analyserFrequencyData.fftSize = 2 ** 8;
+      this.nodes.analyserFrequencyData.fftSize = 2 ** 10;
       this.nodes.analyserFrequencyData.smoothingTimeConstant = 0.8;
       let frequencyDataArray = new Uint8Array(
         this.nodes.analyserFrequencyData.frequencyBinCount
@@ -280,7 +469,7 @@ export default {
       const draw = () => {
         requestAnimationFrame(draw);
         if (this.audioBuffer && this.$refs.elAudio) {
-          ctxL2.fillStyle = "rgb(200, 0, 0)";
+          ctxL2.fillStyle = "rgb(190, 0, 0)";
           let x =
             (this.$refs.elAudio.currentTime / this.audioBuffer.duration) * w;
           ctxL2.clearRect(0, 0, w, h);
@@ -308,7 +497,7 @@ export default {
 
         const sliceWidth = (WIDTH * 1.0) / dataArray.length;
         waveformCanvasContext.lineWidth = 2;
-        waveformCanvasContext.strokeStyle = "rgb(0, 0, 0)";
+        waveformCanvasContext.strokeStyle = "rgb(0, 156, 26)";
         waveformCanvasContext.beginPath();
         let x = 0;
         for (let i = 0; i < dataArray.length; i++) {
@@ -359,8 +548,7 @@ export default {
       const HEIGHT = canvasCtx.canvas.height;
 
       // clear canvas
-      canvasCtx.fillStyle = "rgb(255, 255, 255)";
-      canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+      canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
       function getBins(audioBuffer) {
         const data = audioBuffer;
@@ -378,7 +566,7 @@ export default {
       }
       const bins = getBins(this.audioBuffer.getChannelData(0));
 
-      canvasCtx.fillStyle = "rgb(0, 196, 0)";
+      canvasCtx.fillStyle = "rgb(0, 156, 26)";
 
       let min = 1.0;
       let max = -1.0;
@@ -410,6 +598,9 @@ export default {
     pause() {
       this.$refs.elAudio.pause();
     },
+    updateNewPreset() {
+      this.isPreset = false;
+    },
   },
   watch: {
     selectedAudioFile: {
@@ -437,47 +628,68 @@ export default {
         }
       },
     },
-    gain: function (val) {
-      this.nodes.gain.gain.value = val;
+    presetIndex: function () {
+      this.updateNewPreset();
+      this.isPreset = true;
     },
+    // gain: function (val) {
+    //   this.nodes.gain.gain.value = val;
+    // },
     "filters.HF.freq": function (val) {
       this.nodes.highShelf.frequency.value = val;
+      this.updateNewPreset();
     },
     "filters.HF.gain": function (val) {
       this.nodes.highShelf.gain.value = val;
+      this.updateNewPreset();
     },
     "filters.LF.freq": function (val) {
       this.nodes.lowShelf.frequency.value = val;
+      this.updateNewPreset();
     },
     "filters.LF.gain": function (val) {
       this.nodes.lowShelf.gain.value = val;
+      this.updateNewPreset();
     },
     "filters.HMF.freq": function (val) {
       this.nodes.highPass.frequency.value = val;
+      this.updateNewPreset();
     },
     "filters.HMF.Q": function (val) {
       this.nodes.highPass.Q.value = val;
+      this.updateNewPreset();
     },
     "filters.LMF.freq": function (val) {
       this.nodes.lowPass.frequency.value = val;
+      this.updateNewPreset();
     },
     "filters.LMF.Q": function (val) {
       this.nodes.lowPass.Q.value = val;
+      this.updateNewPreset();
+    },
+    "compressor.gain": function (val) {
+      this.nodes.gain.gain.value = val;
+      this.updateNewPreset();
     },
     "compressor.threshold": function (val) {
       this.nodes.compressor.threshold.value = val;
+      this.updateNewPreset();
     },
     "compressor.knee": function (val) {
       this.nodes.compressor.knee.value = val;
+      this.updateNewPreset();
     },
     "compressor.ratio": function (val) {
       this.nodes.compressor.ratio.value = val;
+      this.updateNewPreset();
     },
     "compressor.attack": function (val) {
       this.nodes.compressor.attack.value = val;
+      this.updateNewPreset();
     },
     "compressor.release": function (val) {
       this.nodes.compressor.release.value = val;
+      this.updateNewPreset();
     },
   },
 };
